@@ -14,7 +14,7 @@
 
 import logging
 from datetime import timedelta, datetime
-import pycarwings2
+import pycarwings3
 
 log = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class CarwingsResponse:
         # seems to indicate that the vehicle cannot be reached
         if ("ELECTRIC_WAVE_ABNORMAL" == op_result):
             log.error("could not establish communications with vehicle")
-            raise pycarwings2.CarwingsError("could not establish communications with vehicle")
+            raise pycarwings3.CarwingsError("could not establish communications with vehicle")
 
     def _set_cruising_ranges(self, status, off_key="cruisingRangeAcOff", on_key="cruisingRangeAcOn"):
         if off_key in status:

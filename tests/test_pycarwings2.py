@@ -4,8 +4,8 @@ import json
 import logging
 import sys
 import pytest
-from pycarwings2 import Session, CarwingsError
-from pycarwings2.responses import (
+from pycarwings3 import Session, CarwingsError
+from pycarwings3.responses import (
     CarwingsLatestBatteryStatusResponse,
     CarwingsLatestClimateControlStatusResponse
 )

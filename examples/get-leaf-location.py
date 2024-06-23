@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import pycarwings2
+import pycarwings3
 from configparser import ConfigParser
 import logging
 import sys
@@ -20,7 +20,7 @@ region = parser.get('get-leaf-info', 'region')
 logging.debug("login = %s, password = %s, region = %s" % (username, password, region))
 
 print("Prepare Session")
-session = pycarwings2.Session(username, password, region)
+session = pycarwings3.Session(username, password, region)
 print("Login...")
 leaf = session.get_leaf()
 
