@@ -32,7 +32,7 @@ More details are located at the top of [pycarwings2.py](https://github.com/filco
 
 ## Installation
 
-    pip3 install pycarwings2
+    pip3 install pycarwings3
 
 ## Example usage
 
