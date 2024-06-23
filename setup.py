@@ -5,7 +5,7 @@ import codecs
 import os
 import re
 
-NAME = 'pycarwings2'
+NAME = 'pycarwings3'
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -34,9 +34,9 @@ long_description = read('README.md')
 setup(
     name=NAME,
     version=find_version(NAME, "__init__.py"),
-    url='https://github.com/filcole/pycarwings2',
-    author='Phil Cole',
-    author_email='filcole@gmail.com',
+    url='https://github.com/ev-freaks/pycarwings3',
+    author='Remus Lazar',
+    author_email='remus@ev-freaks.com',
     description='Python library for interacting with the Nissan Leaf Carwings telematics service',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -58,7 +58,8 @@ setup(
         'PyYAML',
         'iso8601',
         'requests',
-        'pycryptodome'],
+        'pycryptodome',
+        'requests~=2.0'],
     packages=find_packages(),
     setup_requires=('pytest-runner'),
     tests_require=['pytest', 'pytest-cov', 'pytest-flake8'],

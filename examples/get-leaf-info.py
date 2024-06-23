@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import pycarwings2
+import pycarwings3
 import time
 from configparser import ConfigParser
 import logging
@@ -56,7 +56,7 @@ def print_info(info):
 logging.debug("login = %s, password = %s, region = %s" % (username, password, region))
 
 print("Prepare Session")
-s = pycarwings2.Session(username, password, region)
+s = pycarwings3.Session(username, password, region)
 print("Login...")
 leaf = s.get_leaf()
 
