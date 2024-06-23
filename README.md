@@ -1,12 +1,14 @@
-# pycarwings2
+# pycarwings3
 
-[![Build Status](https://travis-ci.com/filcole/pycarwings2.svg?branch=master)](https://travis-ci.com/filcole/pycarwings2)
-[![PyPI](https://img.shields.io/pypi/v/pycarwings2)](https://pypi.org/project/pycarwings2)
-[![Python](https://img.shields.io/pypi/pyversions/pycarwings2)](https://pypi.org/project/pycarwings2)
-[![Downloads](https://img.shields.io/pypi/dm/pycarwings2)](https://pypi.org/project/pycarwings2)
-[![License](https://img.shields.io/pypi/l/pycarwings2)](https://pypi.org/project/pycarwings2)
+## Why this new fork?
 
-Python3 version of the pycarwings2 library.
+This is basically a fork of the existing pycarwings2 library from @filcole python3 compatible fork, which seems not to be active any more.
+
+Currently the only change is a new feature which will make the Nissan remote API Base URL configurable.
+
+The new name pycarwings3 is being to be able to publish it to PyPI later on.
+
+## Abstract
 
 Library for connecting and interacting with Nissan's CARWINGS service for Nissan LEAF cars.
 Uses the (newly secure!) REST/JSON API rather than the previous XML-based API.
