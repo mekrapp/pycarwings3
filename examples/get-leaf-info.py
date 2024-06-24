@@ -27,7 +27,7 @@ async def update_battery_status(leaf: pycarwings3.Leaf, wait_time=1):
     # they did not, and it was necessary to check the date returned within get_latest_battery_status().
     while status is None:
         print("Waiting {0} seconds".format(sleepsecs))
-        await asyncio.ime.sleep(wait_time)
+        await asyncio.sleep(wait_time)
         status = await leaf.get_status_from_update(key)
     return status
 
