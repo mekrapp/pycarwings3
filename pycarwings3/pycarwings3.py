@@ -68,7 +68,19 @@ from requests import Request, RequestException
 import json
 import logging
 from datetime import date
-from .responses import *
+from .responses import (
+    CarwingsInitialAppResponse,
+    CarwingsLoginResponse,
+    CarwingsBatteryStatusResponse,
+    CarwingsStartClimateControlResponse,
+    CarwingsStopClimateControlResponse,
+    CarwingsDrivingAnalysisResponse,
+    CarwingsLatestBatteryStatusResponse,
+    CarwingsLatestClimateControlStatusResponse,
+    CarwingsElectricRateSimulationResponse,
+    CarwingsClimateControlScheduleResponse,
+    CarwingsMyCarFinderResponse,
+)
 import base64
 from Crypto.Cipher import Blowfish
 
@@ -92,19 +104,19 @@ class CarwingsError(Exception):
 class Session(object):
     """Maintains a connection to CARWINGS, refreshing it when needed"""
 
-    def __init__(self, username, password, region="NNA"):
+    def __init__(self, username, password, region="NNA", base_url=BASE_URL):
         self.username = username
         self.password = password
         self.region_code = region
         self.logged_in = False
         self.custom_sessionid = None
+        self.base_url = base_url
 
     def _request_with_retry(self, endpoint, params):
         ret = self._request(endpoint, params)
 
         if "status" in ret and ret["status"] >= 400:
-            log.info(
-                "carwings error; logging in and trying request again: %s" % ret)
+            log.info("carwings error; logging in and trying request again: %s" % ret)
             # try logging in again
             self.connect()
             ret = self._request(endpoint, params)
@@ -119,30 +131,43 @@ class Session(object):
             params["custom_sessionid"] = ""
 
         req = Request(
-            'POST',
-            url=BASE_URL + endpoint,
+            "POST",
+            url=self.base_url + endpoint,
             data=params,
-            headers={"User-Agent": ""}
+            headers={"User-Agent": ""},
         ).prepare()
 
         log.debug("invoking carwings API: %s" % req.url)
-        log.debug("params: %s" % json.dumps(
-            {k: v.decode('utf-8') if isinstance(v, bytes)
-             else v for k, v in params.items()},
-            sort_keys=True, indent=3, separators=(',', ': '))
+        log.debug(
+            "params: %s"
+            % json.dumps(
+                {
+                    k: v.decode("utf-8") if isinstance(v, bytes) else v
+                    for k, v in params.items()
+                },
+                sort_keys=True,
+                indent=3,
+                separators=(",", ": "),
+            )
         )
 
         try:
             sess = requests.Session()
-            # Nissan servers sometimes do not respond. 
+            # Nissan servers sometimes do not respond.
             # Connections seem OK, but reads are slow and may not be successful
             response = sess.send(req, timeout=(5.0, 600.0))
-            log.debug('Response HTTP Status Code: {status_code}'.format(
-                status_code=response.status_code))
-            log.debug('Response HTTP Response Body: {content}'.format(
-                content=response.content))
+            log.debug(
+                "Response HTTP Status Code: {status_code}".format(
+                    status_code=response.status_code
+                )
+            )
+            log.debug(
+                "Response HTTP Response Body: {content}".format(
+                    content=response.content
+                )
+            )
         except RequestException:
-            log.warning('HTTP Request failed')
+            log.warning("HTTP Request failed")
             raise CarwingsError
 
         # Nissan servers can return html instead of jSOn on occassion, e.g.
@@ -166,8 +191,7 @@ class Session(object):
             log.error("carwings error %s: %s" % (j["message"], j["status"]))
             raise CarwingsError("INVALID PARAMS")
         if "ErrorMessage" in j:
-            log.error("carwings error %s: %s" %
-                      (j["ErrorCode"], j["ErrorMessage"]))
+            log.error("carwings error %s: %s" % (j["ErrorCode"], j["ErrorMessage"]))
             raise CarwingsError
 
         return j
@@ -176,10 +200,13 @@ class Session(object):
         self.custom_sessionid = None
         self.logged_in = False
 
-        response = self._request("InitialApp_v2.php", {
-            "RegionCode": self.region_code,
-            "lg": "en-US",
-        })
+        response = self._request(
+            "InitialApp_v2.php",
+            {
+                "RegionCode": self.region_code,
+                "lg": "en-US",
+            },
+        )
         ret = CarwingsInitialAppResponse(response)
 
         c1 = Blowfish.new(ret.baseprm.encode(), Blowfish.MODE_ECB)
@@ -187,11 +214,14 @@ class Session(object):
         encryptedPassword = c1.encrypt(packedPassword.encode())
         encodedPassword = base64.standard_b64encode(encryptedPassword)
 
-        response = self._request("UserLoginRequest.php", {
-            "RegionCode": self.region_code,
-            "UserId": self.username,
-            "Password": encodedPassword,
-        })
+        response = self._request(
+            "UserLoginRequest.php",
+            {
+                "RegionCode": self.region_code,
+                "UserId": self.username,
+                "Password": encodedPassword,
+            },
+        )
 
         ret = CarwingsLoginResponse(response)
 
@@ -230,21 +260,27 @@ class Leaf:
         log.debug("created leaf %s/%s" % (self.vin, self.nickname))
 
     def request_update(self):
-        response = self.session._request_with_retry("BatteryStatusCheckRequest.php", {
-            "RegionCode": self.session.region_code,
-            "VIN": self.vin,
-        })
+        response = self.session._request_with_retry(
+            "BatteryStatusCheckRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "VIN": self.vin,
+            },
+        )
         return response["resultKey"]
 
     def get_status_from_update(self, result_key):
-        response = self.session._request_with_retry("BatteryStatusCheckResultRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-            "resultKey": result_key,
-        })
+        response = self.session._request_with_retry(
+            "BatteryStatusCheckResultRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+                "resultKey": result_key,
+            },
+        )
         # responseFlag will be "1" if a response has been returned; "0" otherwise
         if response["responseFlag"] == "1":
             return CarwingsBatteryStatusResponse(response)
@@ -252,50 +288,62 @@ class Leaf:
         return None
 
     def start_climate_control(self):
-        response = self.session._request_with_retry("ACRemoteRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-        })
+        response = self.session._request_with_retry(
+            "ACRemoteRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+            },
+        )
         return response["resultKey"]
 
     def get_start_climate_control_result(self, result_key):
-        response = self.session._request_with_retry("ACRemoteResult.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-            "UserId": self.session.gdc_user_id,     # this userid is the 'gdc' userid
-            "resultKey": result_key,
-        })
+        response = self.session._request_with_retry(
+            "ACRemoteResult.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+                "UserId": self.session.gdc_user_id,  # this userid is the 'gdc' userid
+                "resultKey": result_key,
+            },
+        )
         if response["responseFlag"] == "1":
             return CarwingsStartClimateControlResponse(response)
 
         return None
 
     def stop_climate_control(self):
-        response = self.session._request_with_retry("ACRemoteOffRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-        })
+        response = self.session._request_with_retry(
+            "ACRemoteOffRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+            },
+        )
         return response["resultKey"]
 
     def get_stop_climate_control_result(self, result_key):
-        response = self.session._request_with_retry("ACRemoteOffResult.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-            "UserId": self.session.gdc_user_id,     # this userid is the 'gdc' userid
-            "resultKey": result_key,
-        })
+        response = self.session._request_with_retry(
+            "ACRemoteOffResult.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+                "UserId": self.session.gdc_user_id,  # this userid is the 'gdc' userid
+                "resultKey": result_key,
+            },
+        )
         if response["responseFlag"] == "1":
             return CarwingsStopClimateControlResponse(response)
 
@@ -305,49 +353,61 @@ class Leaf:
     # I believe this time is specified in GMT, despite the "tz" parameter
     # TODO: change parameter to python datetime object(?)
     def schedule_climate_control(self, execute_time):
-        response = self.session._request_with_retry("ACRemoteNewRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-            "ExecuteTime": execute_time,
-        })
-        return (response["status"] == 200)
+        response = self.session._request_with_retry(
+            "ACRemoteNewRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+                "ExecuteTime": execute_time,
+            },
+        )
+        return response["status"] == 200
 
     # execute time example: "2016-02-09 17:24"
     # I believe this time is specified in GMT, despite the "tz" parameter
     # TODO: change parameter to python datetime object(?)
     def update_scheduled_climate_control(self, execute_time):
-        response = self.session._request_with_retry("ACRemoteUpdateRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-            "ExecuteTime": execute_time,
-        })
-        return (response["status"] == 200)
+        response = self.session._request_with_retry(
+            "ACRemoteUpdateRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+                "ExecuteTime": execute_time,
+            },
+        )
+        return response["status"] == 200
 
     def cancel_scheduled_climate_control(self):
-        response = self.session._request_with_retry("ACRemoteCancelRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-        })
-        return (response["status"] == 200)
+        response = self.session._request_with_retry(
+            "ACRemoteCancelRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+            },
+        )
+        return response["status"] == 200
 
     def get_climate_control_schedule(self):
-        response = self.session._request_with_retry("GetScheduledACRemoteRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-        })
-        if (response["status"] == 200):
+        response = self.session._request_with_retry(
+            "GetScheduledACRemoteRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+            },
+        )
+        if response["status"] == 200:
             if response["ExecuteTime"] != "":
                 return CarwingsClimateControlScheduleResponse(response)
 
@@ -360,14 +420,17 @@ class Leaf:
     """
 
     def start_charging(self):
-        response = self.session._request_with_retry("BatteryRemoteChargingRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-            "ExecuteTime": date.today().isoformat()
-        })
+        response = self.session._request_with_retry(
+            "BatteryRemoteChargingRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+                "ExecuteTime": date.today().isoformat(),
+            },
+        )
         if response["status"] == 200:
             # This only indicates that the charging command has been received by the
             # Nissan servers, it does not indicate that the car is now charging.
@@ -376,62 +439,74 @@ class Leaf:
         return False
 
     def get_driving_analysis(self):
-        response = self.session._request_with_retry("DriveAnalysisBasicScreenRequestEx.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-        })
+        response = self.session._request_with_retry(
+            "DriveAnalysisBasicScreenRequestEx.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+            },
+        )
         if response["status"] == 200:
             return CarwingsDrivingAnalysisResponse(response)
 
         return None
 
     def get_latest_battery_status(self):
-        response = self.session._request_with_retry("BatteryStatusRecordsRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-            "TimeFrom": self.bound_time
-        })
+        response = self.session._request_with_retry(
+            "BatteryStatusRecordsRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+                "TimeFrom": self.bound_time,
+            },
+        )
         if response["status"] == 200:
             if "BatteryStatusRecords" in response:
                 return CarwingsLatestBatteryStatusResponse(response)
             else:
-                log.warning('no battery status record returned by server')
+                log.warning("no battery status record returned by server")
 
         return None
 
     def get_latest_hvac_status(self):
-        response = self.session._request_with_retry("RemoteACRecordsRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-            "TimeFrom": self.bound_time
-        })
+        response = self.session._request_with_retry(
+            "RemoteACRecordsRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+                "TimeFrom": self.bound_time,
+            },
+        )
         if response["status"] == 200:
             if "RemoteACRecords" in response:
                 return CarwingsLatestClimateControlStatusResponse(response)
             else:
-                log.warning('no remote a/c records returned by server')
+                log.warning("no remote a/c records returned by server")
 
         return None
 
     # target_month format: "YYYYMM" e.g. "201602"
     def get_electric_rate_simulation(self, target_month):
-        response = self.session._request_with_retry("PriceSimulatorDetailInfoRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-            "TargetMonth": target_month
-        })
+        response = self.session._request_with_retry(
+            "PriceSimulatorDetailInfoRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+                "TargetMonth": target_month,
+            },
+        )
         if response["status"] == 200:
             return CarwingsElectricRateSimulationResponse(response)
 
@@ -442,25 +517,31 @@ class Leaf:
         # Nissan APIs was removed.  It may return, so this call is left here.
         # It currently errors with a 404 MyCarFinderRequest.php was not found on this server
         # for European users.
-        response = self.session._request_with_retry("MyCarFinderRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-            "UserId": self.session.gdc_user_id,     # this userid is the 'gdc' userid
-        })
+        response = self.session._request_with_retry(
+            "MyCarFinderRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+                "UserId": self.session.gdc_user_id,  # this userid is the 'gdc' userid
+            },
+        )
         return response["resultKey"]
 
     def get_status_from_location(self, result_key):
-        response = self.session._request_with_retry("MyCarFinderResultRequest.php", {
-            "RegionCode": self.session.region_code,
-            "lg": self.session.language,
-            "DCMID": self.session.dcm_id,
-            "VIN": self.vin,
-            "tz": self.session.tz,
-            "resultKey": result_key,
-        })
+        response = self.session._request_with_retry(
+            "MyCarFinderResultRequest.php",
+            {
+                "RegionCode": self.session.region_code,
+                "lg": self.session.language,
+                "DCMID": self.session.dcm_id,
+                "VIN": self.vin,
+                "tz": self.session.tz,
+                "resultKey": result_key,
+            },
+        )
         if response["responseFlag"] == "1":
             return CarwingsMyCarFinderResponse(response)
 
