@@ -57,10 +57,9 @@ setup(
     install_requires=[
         'PyYAML',
         'iso8601',
-        'requests',
         'pycryptodome',
-        'requests~=2.0'],
+        'asyncio'],
     packages=find_packages(),
     setup_requires=('pytest-runner'),
-    tests_require=['pytest', 'pytest-cov', 'pytest-flake8'],
+    tests_require=['pytest', 'pytest-cov', 'pytest-flake8', 'pytest-asyncio', 'flake8==3.7.9'],
 )
