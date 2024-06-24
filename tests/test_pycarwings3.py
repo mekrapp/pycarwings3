@@ -10,15 +10,17 @@ from pycarwings3.responses import (
     CarwingsLatestClimateControlStatusResponse
 )
 
+pytest_plugins = ('pytest_asyncio',)
+
 logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
 
-
-def test_bad_password():
+@pytest.mark.asyncio
+async def test_bad_password():
     with pytest.raises(CarwingsError) as excinfo:
-        s = Session("user@domain.com", "password", "NE")
-        leaf = s.get_leaf()
-        if leaf is not None:
-            pass
+        async with Session("user@domain.com", "password", "NE") as s:
+            leaf = await s.get_leaf()
+            if leaf is not None:
+                pass
     assert 'INVALID' in str(excinfo.value)
 
 
