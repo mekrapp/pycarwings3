@@ -104,7 +104,7 @@ class Session(object):
         self.session.headers.update({"User-Agent": ""})
         return self
 
-    async def __aexit__(self, *excinfo):
+    async def __aexit__(self):
         await self.session.close()
 
     async def _request_with_retry(self, endpoint, params):
@@ -345,7 +345,7 @@ class Leaf:
         return (response["status"] == 200)
 
     async def get_climate_control_schedule(self):
-        response = await elf.session._request_with_retry("GetScheduledACRemoteRequest.php", {
+        response = await self.session._request_with_retry("GetScheduledACRemoteRequest.php", {
             "RegionCode": self.session.region_code,
             "lg": self.session.language,
             "DCMID": self.session.dcm_id,
