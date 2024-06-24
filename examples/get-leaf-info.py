@@ -77,7 +77,7 @@ async def main():
 
             print("request an update from the car itself")
 
-            update_status = await update_battery_status(leaf, sleepsecs)
+            await update_battery_status(leaf, sleepsecs)
 
             latest_leaf_info = await leaf.get_latest_battery_status()
             latest_date = latest_leaf_info.answer["BatteryStatusRecords"]["OperationDateAndTime"]
