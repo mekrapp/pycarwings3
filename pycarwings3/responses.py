@@ -367,7 +367,7 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
         self._set_cruising_ranges(racr, on_key="CruisingRangeAcOn", off_key="CruisingRangeAcOff")
 
         # If no empty RemoteACRecords list is returned then assume CC is off.
-        if type(racr) is not dict:
+        if not isinstance(racr, dict):
             self.is_hvac_running = False
         else:
             # Seems to be running only if both of these contain "START".

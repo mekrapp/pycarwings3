@@ -66,7 +66,19 @@ this field will contain the value "ELECTRIC_WAVE_ABNORMAL". Odd.
 import json
 import logging
 from datetime import date
-from .responses import *
+from .responses import (
+    CarwingsInitialAppResponse,
+    CarwingsLoginResponse,
+    CarwingsBatteryStatusResponse,
+    CarwingsStartClimateControlResponse,
+    CarwingsStopClimateControlResponse,
+    CarwingsDrivingAnalysisResponse,
+    CarwingsLatestBatteryStatusResponse,
+    CarwingsLatestClimateControlStatusResponse,
+    CarwingsElectricRateSimulationResponse,
+    CarwingsClimateControlScheduleResponse,
+    CarwingsMyCarFinderResponse,
+)
 import base64
 from Crypto.Cipher import Blowfish
 import aiohttp
@@ -471,6 +483,7 @@ class Leaf:
                 return CarwingsLatestBatteryStatusResponse(response)
             else:
                 log.warning("no battery status record returned by server")
+                log.warning("no battery status record returned by server")
 
         return None
 
@@ -490,6 +503,7 @@ class Leaf:
             if "RemoteACRecords" in response:
                 return CarwingsLatestClimateControlStatusResponse(response)
             else:
+                log.warning("no remote a/c records returned by server")
                 log.warning("no remote a/c records returned by server")
 
         return None
