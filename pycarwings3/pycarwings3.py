@@ -91,12 +91,13 @@ class CarwingsError(Exception):
 class Session(object):
     """Maintains a connection to CARWINGS, refreshing it when needed"""
 
-    def __init__(self, username, password, region="NNA"):
+    def __init__(self, username, password, region="NNA", base_url=BASE_URL):
         self.username = username
         self.password = password
         self.region_code = region
         self.logged_in = False
         self.custom_sessionid = None
+        self.base_url = base_url
         self.session = aiohttp.ClientSession(read_timeout=300, conn_timeout=5)
 
     async def __aenter__(self):
@@ -125,7 +126,7 @@ class Session(object):
         else:
             params["custom_sessionid"] = ""
 
-        url = BASE_URL + endpoint
+        url = self.base_url + endpoint
 
         # Nissan servers can return html instead of jSOn on occassion, e.g.
         #
