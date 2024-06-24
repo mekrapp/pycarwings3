@@ -6,12 +6,6 @@
 
 This is basically a fork of the existing pycarwings2 library from @filcole python3 compatible fork, which seems not to be active any more.
 
-...
-
-## Why this new fork?
-
-This is basically a fork of the existing pycarwings2 library from @filcole python3 compatible fork, which seems not to be active any more.
-
 Currently the only change is a new feature which will make the Nissan remote API Base URL configurable.
 
 The new name pycarwings3 is being to be able to publish it to PyPI later on.
