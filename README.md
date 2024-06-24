@@ -1,5 +1,13 @@
 # pycarwings3
 
+[![CI](https://github.com/ev-freaks/pycarwings3/actions/workflows/ci.yml/badge.svg)](https://github.com/ev-freaks/pycarwings3/actions/workflows/ci.yml)
+
+## Why this new fork?
+
+This is basically a fork of the existing pycarwings2 library from @filcole python3 compatible fork, which seems not to be active any more.
+
+...
+
 ## Why this new fork?
 
 This is basically a fork of the existing pycarwings2 library from @filcole python3 compatible fork, which seems not to be active any more.
