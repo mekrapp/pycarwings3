@@ -56,6 +56,6 @@ setup(
         'pycryptodome',
         'requests~=2.0'],
     packages=find_packages(),
-    setup_requires=('pytest-runner'),
-    tests_require=['pytest', 'pytest-cov', 'pytest-ruff', 'ruff'],
+    setup_requires=('pytest-runner', 'ruff'),
+    tests_require=['pytest', 'pytest-cov', 'pytest-ruff'],
 )
