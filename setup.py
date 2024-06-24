@@ -53,6 +53,7 @@ setup(
         'PyYAML',
         'iso8601',
         'pycryptodome',
+        'aiohttp==3.9.5',
         'asyncio'],
     packages=find_packages(),
     setup_requires=('pytest-runner', 'ruff'),
