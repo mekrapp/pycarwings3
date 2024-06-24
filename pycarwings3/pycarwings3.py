@@ -92,12 +92,13 @@ class CarwingsError(Exception):
 class Session(object):
     """Maintains a connection to CARWINGS, refreshing it when needed"""
 
-    def __init__(self, username, password, region="NNA"):
+    def __init__(self, username, password, region="NNA", base_url=BASE_URL):
         self.username = username
         self.password = password
         self.region_code = region
         self.logged_in = False
         self.custom_sessionid = None
+        self.base_url = base_url
 
     def _request_with_retry(self, endpoint, params):
         ret = self._request(endpoint, params)
@@ -120,7 +121,7 @@ class Session(object):
 
         req = Request(
             'POST',
-            url=BASE_URL + endpoint,
+            url=self.base_url + endpoint,
             data=params,
             headers={"User-Agent": ""}
         ).prepare()
