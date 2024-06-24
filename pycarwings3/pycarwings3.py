@@ -104,7 +104,7 @@ class Session(object):
         self.session.headers.update({"User-Agent": ""})
         return self
 
-    async def __aexit__(self):
+    async def __aexit__(self, exc_type, exc, tb):
         await self.session.close()
 
     async def _request_with_retry(self, endpoint, params):
