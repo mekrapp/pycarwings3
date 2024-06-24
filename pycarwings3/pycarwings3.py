@@ -120,11 +120,11 @@ class Session(object):
         return ret
 
     async def _request(self, endpoint, params):
-        params["initial_app_str"] = "9s5rfKVuMrT03RtzajWNcA"
         if self.custom_sessionid:
             params["custom_sessionid"] = self.custom_sessionid
         else:
             params["custom_sessionid"] = ""
+            params["initial_app_str"] = "9s5rfKVuMrT03RtzajWNcA"
 
         url = self.base_url + endpoint
 
@@ -150,7 +150,7 @@ class Session(object):
 
             # Nissan servers sometimes do not respond. 
             # Connections seem OK, but reads are slow and may not be successful
-            async with self.session.post(url, data=params) as response:
+            async with self.session.post(url, json=params) as response:
 
                 log.debug('Response HTTP Status Code: {status_code}'.format(
                     status_code=response.status))
@@ -190,7 +190,7 @@ class Session(object):
         c1 = Blowfish.new(ret.baseprm.encode(), Blowfish.MODE_ECB)
         packedPassword = _PKCS5Padding(self.password)
         encryptedPassword = c1.encrypt(packedPassword.encode())
-        encodedPassword = base64.standard_b64encode(encryptedPassword)
+        encodedPassword = base64.standard_b64encode(encryptedPassword).decode()
 
         response = await self._request("UserLoginRequest.php", {
             "RegionCode": self.region_code,
