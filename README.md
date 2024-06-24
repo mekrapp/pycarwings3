@@ -1,6 +1,6 @@
 # pycarwings3
 
-[![CI](https://github.com/ev-freaks/pycarwings3/actions/workflows/ci.yml/badge.svg)](https://github.com/ev-freaks/pycarwings3/actions/workflows/ci.yml)
+[![CI](https://github.com/ev-freaks/pycarwings3/actions/workflows/main.yml/badge.svg)](https://github.com/ev-freaks/pycarwings3/actions/workflows/main.yml)
 
 ## Why this new fork?
 
