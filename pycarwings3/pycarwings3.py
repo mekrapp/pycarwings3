@@ -156,8 +156,14 @@ class Session(object):
                     status_code=response.status))
                 log.debug('Response HTTP Response Body: {content}'.format(
                     content=await response.text()))
-                
-                j = await response.json()
+
+                try:
+                    # ignore the content-type set by the server, as it may be wrong
+                    j = await response.json(content_type=None)
+                except aiohttp.ContentTypeError as contentTypeError:
+                    log.error("invalid json returned by server: %s" % contentTypeError.message)
+                    log.error("response body: %s" % await response.text())
+                    raise CarwingsError from contentTypeError
 
                 if "message" in j and j["message"] == "INVALID PARAMS":
                     log.error("carwings error %s: %s" % (j["message"], j["status"]))
@@ -169,9 +175,6 @@ class Session(object):
                     raise CarwingsError
 
                 return j
-        except aiohttp.ContentTypeError as contentTypeError:
-            log.error("invalid json returned by server: %s" % contentTypeError.message)
-            raise CarwingsError from contentTypeError
         except aiohttp.ClientError as clientError:
             log.exception(clientError)
             log.warning('HTTP Request failed')
