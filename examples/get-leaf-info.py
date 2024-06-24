@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 import pycarwings3
-import time
 from configparser import ConfigParser
 import logging
 import sys
+import asyncio
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -18,15 +18,15 @@ region = parser.get('get-leaf-info', 'region')
 sleepsecs = 30     # Time to wait before polling Nissan servers for update
 
 
-def update_battery_status(leaf, wait_time=1):
-    key = leaf.request_update()
+async def update_battery_status(leaf: pycarwings3.Leaf, wait_time=1):
+    key = await leaf.request_update()
     status = leaf.get_status_from_update(key)
     # Currently the nissan servers eventually return status 200 from get_status_from_update(), previously
     # they did not, and it was necessary to check the date returned within get_latest_battery_status().
     while status is None:
         print("Waiting {0} seconds".format(sleepsecs))
-        time.sleep(wait_time)
-        status = leaf.get_status_from_update(key)
+        await asyncio.ime.sleep(wait_time)
+        status = await leaf.get_status_from_update(key)
     return status
 
 
@@ -52,31 +52,37 @@ def print_info(info):
 
 
 # Main program
+async def main():
+    logging.debug("login = %s, password = %s, region = %s" % (username, password, region))
 
-logging.debug("login = %s, password = %s, region = %s" % (username, password, region))
+    print("Prepare Session")
+    async with pycarwings3.Session(username, password, region) as s:
+        try:
+            print("Login...")
+            leaf = await s.get_leaf()
 
-print("Prepare Session")
-s = pycarwings3.Session(username, password, region)
-print("Login...")
-leaf = s.get_leaf()
+            # Give the nissan servers a bit of a delay so that we don't get stale data
+            await asyncio.sleep(1)
 
-# Give the nissan servers a bit of a delay so that we don't get stale data
-time.sleep(1)
+            print("get_latest_battery_status from servers")
+            leaf_info = await leaf.get_latest_battery_status()
+            start_date = leaf_info.answer["BatteryStatusRecords"]["OperationDateAndTime"]
+            print("start_date=", start_date)
+            print_info(leaf_info)
 
-print("get_latest_battery_status from servers")
-leaf_info = leaf.get_latest_battery_status()
-start_date = leaf_info.answer["BatteryStatusRecords"]["OperationDateAndTime"]
-print("start_date=", start_date)
-print_info(leaf_info)
+            # Give the nissan servers a bit of a delay so that we don't get stale data
+            await asyncio.sleep(1)
 
-# Give the nissan servers a bit of a delay so that we don't get stale data
-time.sleep(1)
+            print("request an update from the car itself")
 
-print("request an update from the car itself")
+            update_status = await update_battery_status(leaf, sleepsecs)
 
-update_status = update_battery_status(leaf, sleepsecs)
+            latest_leaf_info = await leaf.get_latest_battery_status()
+            latest_date = latest_leaf_info.answer["BatteryStatusRecords"]["OperationDateAndTime"]
+            print("latest_date=", latest_date)
+            print_info(latest_leaf_info)
 
-latest_leaf_info = leaf.get_latest_battery_status()
-latest_date = latest_leaf_info.answer["BatteryStatusRecords"]["OperationDateAndTime"]
-print("latest_date=", latest_date)
-print_info(latest_leaf_info)
+        except pycarwings3.CarwingsError as e:
+            raise e
+
+asyncio.run(main())
