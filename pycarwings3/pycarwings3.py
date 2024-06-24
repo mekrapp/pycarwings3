@@ -98,7 +98,7 @@ class Session(object):
         self.logged_in = False
         self.custom_sessionid = None
         self.base_url = base_url
-        self.session = aiohttp.ClientSession(read_timeout=300, conn_timeout=5)
+        self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(300, connect=5))
 
     async def __aenter__(self):
         self.session.headers.update({"User-Agent": ""})
