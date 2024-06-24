@@ -22,7 +22,7 @@ sleepsecs = 30     # Time to wait before polling Nissan servers for update
 
 async def update_battery_status(leaf: pycarwings3.Leaf, wait_time=1):
     key = await leaf.request_update()
-    status = leaf.get_status_from_update(key)
+    status = await leaf.get_status_from_update(key)
     # Currently the nissan servers eventually return status 200 from get_status_from_update(), previously
     # they did not, and it was necessary to check the date returned within get_latest_battery_status().
     while status is None:
