@@ -635,6 +635,7 @@ class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
         bs = recs["BatteryStatus"]
         self.battery_capacity = bs["BatteryCapacity"]
         self.battery_remaining_amount = bs["BatteryRemainingAmount"]
+        self.battery_remaining_amount_wh = bs["BatteryRemainingAmountWH"]
         self.charging_status = bs["BatteryChargingStatus"]
         self.is_charging = ("NOT_CHARGING" != bs["BatteryChargingStatus"])    # double negatives are fun
         self.is_quick_charging = ("RAPIDLY_CHARGING" == bs["BatteryChargingStatus"])
