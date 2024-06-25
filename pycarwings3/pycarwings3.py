@@ -103,23 +103,29 @@ class CarwingsError(Exception):
 class Session(object):
     """Maintains a connection to CARWINGS, refreshing it when needed"""
 
-    def __init__(self, username, password, region="NNA", base_url=BASE_URL):
+    def __init__(self, username, password, region="NNA", session: ClientSession=None, base_url=BASE_URL):
         self.username = username
         self.password = password
         self.region_code = region
         self.logged_in = False
         self.custom_sessionid = None
         self.base_url = base_url
-        self.session = ClientSession(
-            timeout=ClientTimeout(300, connect=5)
-        )
+        if (session):
+            self._shared_session = True
+            self.session = session
+        else:
+            self._shared_session = False
+            self.session = ClientSession(
+                timeout=ClientTimeout(300, connect=5)
+            )
 
     async def __aenter__(self):
         self.session.headers.update({"User-Agent": ""})
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
-        await self.session.close()
+        if not self._shared_session:
+            await self.session.close()
 
     async def _request_with_retry(self, endpoint, params):
         ret = await self._request(endpoint, params)
