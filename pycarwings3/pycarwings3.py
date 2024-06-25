@@ -81,7 +81,7 @@ from .responses import (
 )
 import base64
 from Crypto.Cipher import Blowfish
-import aiohttp
+from aiohttp import ClientError, ClientSession, ClientTimeout, ContentTypeError
 
 BASE_URL = "https://gdcportalgw.its-mo.com/api_v230317_NE/gdc/"
 
@@ -110,8 +110,8 @@ class Session(object):
         self.logged_in = False
         self.custom_sessionid = None
         self.base_url = base_url
-        self.session = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(300, connect=5)
+        self.session = ClientSession(
+            timeout=ClientTimeout(300, connect=5)
         )
 
     async def __aenter__(self):
@@ -185,7 +185,7 @@ class Session(object):
                 try:
                     # ignore the content-type set by the server, as it may be wrong
                     j = await response.json(content_type=None)
-                except aiohttp.ContentTypeError as contentTypeError:
+                except ContentTypeError as contentTypeError:
                     log.error(
                         "invalid json returned by server: %s" % contentTypeError.message
                     )
@@ -203,7 +203,7 @@ class Session(object):
                     raise CarwingsError
 
                 return j
-        except aiohttp.ClientError as clientError:
+        except ClientError as clientError:
             log.exception(clientError)
             log.warning("HTTP Request failed")
             raise CarwingsError from clientError
