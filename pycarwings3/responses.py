@@ -365,7 +365,9 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
         racr = status["RemoteACRecords"]
 
         self._set_cruising_ranges(racr, on_key="CruisingRangeAcOn", off_key="CruisingRangeAcOff")
-        self._operation_date_and_time = racr["OperationDateAndTime"]
+    
+        if isinstance(racr, dict):
+            self._operation_date_and_time = racr["OperationDateAndTime"]
 
         # If no empty RemoteACRecords list is returned then assume CC is off.
         if not isinstance(racr, dict):
@@ -390,6 +392,9 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
 
     def __eq__(self, other):
         if not isinstance(other, CarwingsLatestClimateControlStatusResponse):
+            return NotImplemented
+        
+        if self._operation_date_and_time is None:
             return NotImplemented
 
         return (
