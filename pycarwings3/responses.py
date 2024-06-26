@@ -677,6 +677,9 @@ class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
             self.battery_percent = float(self.state_of_charge)
         else:
             self.state_of_charge = None
+        
+        # "NotificationDateAndTime":"2016/02/14 20:28",
+        self.timestamp = datetime.strptime(recs["NotificationDateAndTime"], "%Y/%m/%d %H:%M")
 
 
 class CarwingsElectricRateSimulationResponse(CarwingsResponse):
