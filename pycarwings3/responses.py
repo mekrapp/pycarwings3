@@ -13,7 +13,9 @@
 # limitations under the License.
 
 import logging
-from datetime import UTC, timedelta, datetime
+from datetime import timedelta, datetime
+from pytz import UTC
+
 import pycarwings3
 
 log = logging.getLogger(__name__)
