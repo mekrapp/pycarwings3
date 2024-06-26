@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import logging
-from datetime import timedelta, datetime
+from datetime import UTC, timedelta, datetime
 import pycarwings3
 
 log = logging.getLogger(__name__)
@@ -376,6 +376,20 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
                 racr["OperationResult"].startswith("START") and
                 racr["RemoteACOperation"] == "START"
             )
+        
+        # "2018/04/08 10:00"
+        self.timestamp = datetime.strptime(
+            racr["OperationDateAndTime"],
+            "%Y/%m/%d %H:%M"
+        ).astimezone(tz=UTC)
+
+    def __eq__(self, other):
+        if not isinstance(other, CarwingsLatestClimateControlStatusResponse):
+            return NotImplemented
+
+        return (
+            self.timestamp == other.timestamp
+        )
 
 
 class CarwingsStartClimateControlResponse(CarwingsResponse):
@@ -679,8 +693,18 @@ class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
             self.state_of_charge = None
         
         # "NotificationDateAndTime":"2016/02/14 20:28",
-        self.timestamp = datetime.strptime(recs["NotificationDateAndTime"], "%Y/%m/%d %H:%M")
+        self.timestamp = datetime.strptime(
+            recs["NotificationDateAndTime"],
+            "%Y/%m/%d %H:%M"
+        ).astimezone(tz=UTC)
 
+    def __eq__(self, other):
+        if not isinstance(other, CarwingsLatestBatteryStatusResponse):
+            return NotImplemented
+
+        return (
+            self.timestamp == other.timestamp
+        )
 
 class CarwingsElectricRateSimulationResponse(CarwingsResponse):
     def __init__(self, status):
