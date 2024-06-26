@@ -380,8 +380,11 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
         
         # "Feb 10, 2016 10:26 PM"
         try:
-            self.timestamp = datetime.strptime(racr["OperationDateAndTime"],
-                                                "%b %d, %Y %I:%M %p").astimezone(tz=UTC)
+            if isinstance(racr, dict):
+                self.timestamp = datetime.strptime(racr["OperationDateAndTime"],
+                                                    "%b %d, %Y %I:%M %p").astimezone(tz=UTC)
+            else:
+                self.timestamp = None
         except (KeyError, ValueError):
             self.timestamp = None
 
