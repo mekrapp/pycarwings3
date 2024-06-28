@@ -530,6 +530,12 @@ class CarwingsDrivingAnalysisResponse(CarwingsResponse):
 
         self.advice = [status["AdviceList"]["Advice"]]  # will contain "title" and "body"
 
+    @property
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.__dict__ == other.__dict__
+
 
 class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
     """
