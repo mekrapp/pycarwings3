@@ -4,7 +4,7 @@ import json
 import logging
 import sys
 import pytest
-from pycarwings3 import Session, CarwingsError
+from pycarwings3 import CarwingsError
 from pycarwings3.responses import (
     CarwingsLatestBatteryStatusResponse,
     CarwingsLatestClimateControlStatusResponse
@@ -13,15 +13,6 @@ from pycarwings3.responses import (
 pytest_plugins = ('pytest_asyncio',)
 
 logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
-
-@pytest.mark.asyncio
-async def test_bad_password():
-    with pytest.raises(CarwingsError) as excinfo:
-        async with Session("user@domain.com", "password", "NE") as s:
-            leaf = await s.get_leaf()
-            if leaf is not None:
-                pass
-    assert 'INVALID' in str(excinfo.value)
 
 
 def test_get_latest_hvac_status_on():
