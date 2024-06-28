@@ -81,7 +81,7 @@ from .responses import (
 )
 import base64
 from Crypto.Cipher import Blowfish
-import aiohttp
+from aiohttp import ClientError, ClientSession, ClientTimeout, ContentTypeError
 
 BASE_URL = "https://gdcportalgw.its-mo.com/api_v230317_NE/gdc/"
 
@@ -103,23 +103,29 @@ class CarwingsError(Exception):
 class Session(object):
     """Maintains a connection to CARWINGS, refreshing it when needed"""
 
-    def __init__(self, username, password, region="NNA", base_url=BASE_URL):
+    def __init__(self, username, password, region="NNA", session: ClientSession=None, base_url=BASE_URL):
         self.username = username
         self.password = password
         self.region_code = region
         self.logged_in = False
         self.custom_sessionid = None
         self.base_url = base_url
-        self.session = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(300, connect=5)
-        )
+        if (session):
+            self._shared_session = True
+            self.session = session
+        else:
+            self._shared_session = False
+            self.session = ClientSession(
+                timeout=ClientTimeout(300, connect=5)
+            )
 
     async def __aenter__(self):
         self.session.headers.update({"User-Agent": ""})
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
-        await self.session.close()
+        if not self._shared_session:
+            await self.session.close()
 
     async def _request_with_retry(self, endpoint, params):
         ret = await self._request(endpoint, params)
@@ -185,7 +191,7 @@ class Session(object):
                 try:
                     # ignore the content-type set by the server, as it may be wrong
                     j = await response.json(content_type=None)
-                except aiohttp.ContentTypeError as contentTypeError:
+                except ContentTypeError as contentTypeError:
                     log.error(
                         "invalid json returned by server: %s" % contentTypeError.message
                     )
@@ -203,7 +209,7 @@ class Session(object):
                     raise CarwingsError
 
                 return j
-        except aiohttp.ClientError as clientError:
+        except ClientError as clientError:
             log.exception(clientError)
             log.warning("HTTP Request failed")
             raise CarwingsError from clientError

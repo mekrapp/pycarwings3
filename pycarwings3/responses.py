@@ -14,6 +14,8 @@
 
 import logging
 from datetime import timedelta, datetime
+from pytz import UTC
+
 import pycarwings3
 
 log = logging.getLogger(__name__)
@@ -365,6 +367,9 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
         racr = status["RemoteACRecords"]
 
         self._set_cruising_ranges(racr, on_key="CruisingRangeAcOn", off_key="CruisingRangeAcOff")
+    
+        if isinstance(racr, dict):
+            self._operation_date_and_time = racr["OperationDateAndTime"]
 
         # If no empty RemoteACRecords list is returned then assume CC is off.
         if not isinstance(racr, dict):
@@ -376,6 +381,27 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
                 racr["OperationResult"].startswith("START") and
                 racr["RemoteACOperation"] == "START"
             )
+        
+        # "Feb 10, 2016 10:26 PM"
+        try:
+            if isinstance(racr, dict):
+                self.timestamp = datetime.strptime(racr["OperationDateAndTime"],
+                                                    "%b %d, %Y %I:%M %p").astimezone(tz=UTC)
+            else:
+                self.timestamp = None
+        except (KeyError, ValueError):
+            self.timestamp = None
+
+    def __eq__(self, other):
+        if not isinstance(other, CarwingsLatestClimateControlStatusResponse):
+            return NotImplemented
+        
+        if self._operation_date_and_time is None:
+            return NotImplemented
+
+        return (
+            self._operation_date_and_time == other._operation_date_and_time
+        )
 
 
 class CarwingsStartClimateControlResponse(CarwingsResponse):
@@ -503,6 +529,12 @@ class CarwingsDrivingAnalysisResponse(CarwingsResponse):
         self.electric_cost_scale = status["DriveAnalysisBasicScreenResponsePersonalData"]["ElectricCostScale"]
 
         self.advice = [status["AdviceList"]["Advice"]]  # will contain "title" and "body"
+
+    @property
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.__dict__ == other.__dict__
 
 
 class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
@@ -635,6 +667,7 @@ class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
         bs = recs["BatteryStatus"]
         self.battery_capacity = bs["BatteryCapacity"]
         self.battery_remaining_amount = bs["BatteryRemainingAmount"]
+        self.battery_remaining_amount_wh = bs["BatteryRemainingAmountWH"]
         self.charging_status = bs["BatteryChargingStatus"]
         self.is_charging = ("NOT_CHARGING" != bs["BatteryChargingStatus"])    # double negatives are fun
         self.is_quick_charging = ("RAPIDLY_CHARGING" == bs["BatteryChargingStatus"])
@@ -676,7 +709,20 @@ class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
             self.battery_percent = float(self.state_of_charge)
         else:
             self.state_of_charge = None
+        
+        # "NotificationDateAndTime":"2016/02/14 20:28",
+        self.timestamp = datetime.strptime(
+            recs["NotificationDateAndTime"],
+            "%Y/%m/%d %H:%M"
+        ).astimezone(tz=UTC)
 
+    def __eq__(self, other):
+        if not isinstance(other, CarwingsLatestBatteryStatusResponse):
+            return NotImplemented
+
+        return (
+            self.timestamp == other.timestamp
+        )
 
 class CarwingsElectricRateSimulationResponse(CarwingsResponse):
     def __init__(self, status):
