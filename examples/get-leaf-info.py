@@ -15,7 +15,13 @@ found = parser.read(candidates)
 username = parser.get('get-leaf-info', 'username')
 password = parser.get('get-leaf-info', 'password')
 region = parser.get('get-leaf-info', 'region')
-base_url = parser.get('get-leaf-info', 'base_url')
+
+base_url = None
+
+try:
+    base_url = parser.get('get-leaf-info', 'base_url')
+except:
+    pass
 
 sleepsecs = 30     # Time to wait before polling Nissan servers for update
 
@@ -58,7 +64,12 @@ async def main():
     logging.debug("login = %s, password = %s, region = %s" % (username, password, region))
 
     print("Prepare Session")
-    async with pycarwings3.Session(username, password, region, base_url=base_url) as s:
+    if base_url:
+        session = pycarwings3.Session(username, password, region, base_url=base_url)
+    else:
+        session = pycarwings3.Session(username, password, region)
+
+    async with session as s:
         try:
             print("Login...")
             leaf = await s.get_leaf()
