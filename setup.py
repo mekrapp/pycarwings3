@@ -52,10 +52,11 @@ setup(
     install_requires=[
         'PyYAML',
         'iso8601',
-        'requests',
         'pycryptodome',
-        'requests~=2.0'],
+        'aiohttp==3.9.5',
+        'pytz',
+        'asyncio'],
     packages=find_packages(),
     setup_requires=('pytest-runner', 'ruff'),
-    tests_require=['pytest', 'pytest-cov', 'pytest-ruff'],
+    tests_require=['pytest', 'pytest-cov', 'pytest-ruff', 'pytest-asyncio'],
 )

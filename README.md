@@ -2,22 +2,22 @@
 
 [![CI](https://github.com/ev-freaks/pycarwings3/actions/workflows/main.yml/badge.svg)](https://github.com/ev-freaks/pycarwings3/actions/workflows/main.yml)
 
-## Why this new fork?
+## Introduction
 
-This is basically a fork of the existing pycarwings2 library from @filcole python3 compatible fork, which seems not to be active any more.
+`pycarwings3` is a fork of [pycarwings2](https://github.com/filcole/pycarwings2), updated to support asynchronous operations with the Carwings API via aiohttp, focusing on Python 3 compatibility.
 
-Currently the only change is a new feature which will make the Nissan remote API Base URL configurable.
+The original `pycarwings2` project is no longer active.
 
-The new name pycarwings3 is being to be able to publish it to PyPI later on.
+## Rationale Behind the New Name
+
+The library underwent significant changes, especially adopting asynchronous programming, which led to a break in backward compatibility with `pycarwings2`.
+
+The new name reflects these changes and aims for easier PyPI distribution.
 
 ## Abstract
 
 Library for connecting and interacting with Nissan's CARWINGS service for Nissan LEAF cars.
 Uses the (newly secure!) REST/JSON API rather than the previous XML-based API.
-
-Note: The US may use an entirely RESTful API as mentioned in [this gist by BenWoodford](https://gist.github.com/BenWoodford/141ca350445e994e69a70aabfb6db942) and [Issue 30](https://github.com/jdhorne/pycarwings2/issues/30)  Please report if this works in the US.  I am based in the UK.
-
-Inspired by original pycarwings library: https://github.com/haykinson/pycarwings including code from https://github.com/jdhorne/pycarwings2 and https://github.com/BenWoodford/pycarwings2
 
 ## Asynchronous methods
 
@@ -29,8 +29,6 @@ Recently the polling has continued to return zero, yet when querying the data
 held on the Nissan servers the last update date changes, indicating a response
 has been received from the car, see examples/get-leaf-info.py for how this can
 be handled.
-
-More details are located at the top of [pycarwings2.py](https://github.com/filcole/pycarwings2/blob/HomeAssistant/pycarwings2/pycarwings2.py).
 
 ## Installation
 
@@ -46,6 +44,7 @@ More details are located at the top of [pycarwings2.py](https://github.com/filco
 
 Copyright 2016 Jason Horne
 Copyright 2018 Phil Cole
+Copyright 2024 Remus Lazar
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
