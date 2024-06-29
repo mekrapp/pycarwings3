@@ -525,6 +525,7 @@ class CarwingsDrivingAnalysisResponse(CarwingsResponse):
         self.power_consumption_aux_level = summary["PowerConsumptAUXLevel"]
 
         self.display_date = summary["DisplayDate"]     # "Feb  3, 16"
+        self.target_date = summary["TargetDate"]       # "2016-02-03"
 
         self.electric_cost_scale = status["DriveAnalysisBasicScreenResponsePersonalData"]["ElectricCostScale"]
 
