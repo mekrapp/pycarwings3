@@ -65,7 +65,7 @@ this field will contain the value "ELECTRIC_WAVE_ABNORMAL". Odd.
 
 import json
 import logging
-from datetime import date, now
+from datetime import date, datetime
 from .responses import (
     CarwingsInitialAppResponse,
     CarwingsLoginResponse,
@@ -267,7 +267,7 @@ class Session(object):
         self.leaf = Leaf(self, ret.leafs[0])
 
         self.logged_in = True
-        self._connect_timestamp = now()
+        self._connect_timestamp = datetime.now()
 
         return ret
 
