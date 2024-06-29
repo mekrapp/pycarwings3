@@ -65,7 +65,7 @@ this field will contain the value "ELECTRIC_WAVE_ABNORMAL". Odd.
 
 import json
 import logging
-from datetime import date
+from datetime import date, now
 from .responses import (
     CarwingsInitialAppResponse,
     CarwingsLoginResponse,
@@ -82,6 +82,7 @@ from .responses import (
 import base64
 from Crypto.Cipher import Blowfish
 from aiohttp import ClientError, ClientSession, ClientTimeout, ContentTypeError
+from asyncio import Semaphore
 
 BASE_URL = "https://gdcportalgw.its-mo.com/api_v230317_NE/gdc/"
 
@@ -119,6 +120,9 @@ class Session(object):
                 timeout=ClientTimeout(300, connect=5)
             )
 
+        self._semaphore = Semaphore(1)
+        self._connect_timestamp = None
+
     async def __aenter__(self):
         self.session.headers.update({"User-Agent": ""})
         return self
@@ -131,10 +135,14 @@ class Session(object):
         ret = await self._request(endpoint, params)
 
         if "status" in ret and ret["status"] >= 400:
-            log.info("carwings error; logging in and trying request again: %s" % ret)
-            # try logging in again
-            await self.connect()
-            ret = await self._request(endpoint, params)
+            current_connect_timestamp = self._connect_timestamp
+            async with self._semaphore:  # ensure only one request at a time
+                # check the connect timestamp again, as it may have changed while waiting
+                if self._connect_timestamp == current_connect_timestamp:
+                    log.info("carwings error; logging in and trying request again: %s" % ret)
+                    # try logging in again
+                    await self.connect()
+                ret = await self._request(endpoint, params)
 
         return ret
 
@@ -259,6 +267,7 @@ class Session(object):
         self.leaf = Leaf(self, ret.leafs[0])
 
         self.logged_in = True
+        self._connect_timestamp = now()
 
         return ret
 
