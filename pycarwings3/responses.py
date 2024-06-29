@@ -535,7 +535,11 @@ class CarwingsDrivingAnalysisResponse(CarwingsResponse):
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return NotImplemented
-        return self.__dict__ == other.__dict__
+        return (self.target_date == other.target_date
+                and self.electric_mileage == other.electric_mileage
+                and self.power_consumption_aux == other.power_consumption_aux
+                and self.power_consumption_minus == other.power_consumption_minus
+                and self.power_consumption_moter == other.power_consumption_moter)
 
 
 class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
