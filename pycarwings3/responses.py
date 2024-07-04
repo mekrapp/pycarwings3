@@ -14,7 +14,7 @@
 
 import logging
 from datetime import timedelta, datetime
-from pytz import UTC
+import pytz
 
 import pycarwings3
 
@@ -367,7 +367,7 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
         racr = status["RemoteACRecords"]
 
         self._set_cruising_ranges(racr, on_key="CruisingRangeAcOn", off_key="CruisingRangeAcOff")
-    
+
         if isinstance(racr, dict):
             self._operation_date_and_time = racr["OperationDateAndTime"]
 
@@ -381,12 +381,12 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
                 racr["OperationResult"].startswith("START") and
                 racr["RemoteACOperation"] == "START"
             )
-        
+
         # "Feb 10, 2016 10:26 PM"
         try:
             if isinstance(racr, dict):
                 self.timestamp = datetime.strptime(racr["OperationDateAndTime"],
-                                                    "%b %d, %Y %I:%M %p").astimezone(tz=UTC)
+                                                    "%b %d, %Y %I:%M %p").replace(tzinfo=pytz.utc)
             else:
                 self.timestamp = None
         except (KeyError, ValueError):
@@ -395,7 +395,7 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
     def __eq__(self, other):
         if not isinstance(other, CarwingsLatestClimateControlStatusResponse):
             return NotImplemented
-        
+
         if self._operation_date_and_time is None:
             return NotImplemented
 
@@ -714,12 +714,12 @@ class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
             self.battery_percent = float(self.state_of_charge)
         else:
             self.state_of_charge = None
-        
+
         # "NotificationDateAndTime":"2016/02/14 20:28",
         self.timestamp = datetime.strptime(
             recs["NotificationDateAndTime"],
             "%Y/%m/%d %H:%M"
-        ).astimezone(tz=UTC)
+        ).replace(tzinfo=pytz.utc)
 
     def __eq__(self, other):
         if not isinstance(other, CarwingsLatestBatteryStatusResponse):
