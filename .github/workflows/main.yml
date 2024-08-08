@@ -22,7 +22,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install setuptool and ruff globally
-      run: pip install setuptools ruff
+      run: pip install setuptools~=69.0.3 ruff
     - name: Install dependencies
       run: pip install .
     - name: Run tests
