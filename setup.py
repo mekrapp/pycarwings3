@@ -53,7 +53,7 @@ setup(
         'PyYAML',
         'iso8601',
         'pycryptodome',
-        'aiohttp==3.9.5',
+        'aiohttp~=3.10.1',
         'pytz',
         'asyncio'],
     packages=find_packages(),
