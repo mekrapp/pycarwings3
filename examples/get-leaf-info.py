@@ -20,7 +20,7 @@ base_url = None
 
 try:
     base_url = parser.get('get-leaf-info', 'base_url')
-except:
+except Exception:
     pass
 
 sleepsecs = 30     # Time to wait before polling Nissan servers for update
