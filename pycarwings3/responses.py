@@ -309,7 +309,7 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
                 "OperationResult":"START_BATTERY",
                 "OperationDateAndTime":"Feb 10, 2016 10:22 PM",
                 "RemoteACOperation":"START",
-                "ACStartStopDateAndTime":"Feb 10, 2016 10:23 PM",
+                "ACStartStopDateAndTime":"2018/04/08 10:00",
                 "CruisingRangeAcOn":"107712.0",
                 "CruisingRangeAcOff":"109344.0",
                 "ACStartStopURL":"",
@@ -328,7 +328,7 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
                 "OperationResult":"START",
                 "OperationDateAndTime":"Feb 10, 2016 10:26 PM",
                 "RemoteACOperation":"STOP",
-                "ACStartStopDateAndTime":"Feb 10, 2016 10:27 PM",
+                "ACStartStopDateAndTime":"2018/04/08 10:00",
                 "CruisingRangeAcOn":"111936.0",
                 "CruisingRangeAcOff":"113632.0",
                 "ACStartStopURL":"",
@@ -346,7 +346,7 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
                 "OperationResult":"ELECTRIC_WAVE_ABNORMAL",
                 "OperationDateAndTime":"2018/04/08 10:00",
                 "RemoteACOperation":"START",
-                "ACStartStopDateAndTime":"08-Apr-2018 11:06",
+                "ACStartStopDateAndTime":"2018/04/08 10:00",
                 "ACStartStopURL":"",
                 "PluginState":"INVALID",
                 "ACDurationBatterySec":"900",
@@ -381,6 +381,28 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
                 racr["OperationResult"].startswith("START") and
                 racr["RemoteACOperation"] == "START"
             )
+
+        if isinstance(racr, dict):
+
+            try:
+                self.is_plugged_in = ("NOT_CONNECTED" != racr["PluginState"])
+            except KeyError:
+                self.is_plugged_in = None
+
+            try:
+                self.ac_duration = timedelta(seconds=int(racr["ACDurationPluggedSec"] if self.is_plugged_in else racr["ACDurationBatterySec"]))
+            except KeyError:
+                self.ac_duration = None
+
+            try:
+                # "2018/04/08 10:00"
+                self.ac_start_stop_date_and_time = datetime.strptime(racr["ACStartStopDateAndTime"], "%Y/%m/%d %H:%M").replace(tzinfo=pytz.utc)
+            except (KeyError, ValueError):
+                self.ac_start_stop_date_and_time = None
+        else:
+            self.is_plugged_in = None
+            self.ac_duration = None
+            self.ac_start_stop_date_and_time = None
 
         # "Feb 10, 2016 10:26 PM"
         try:

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+from datetime import datetime, timedelta
 import json
 import logging
 import sys
+import pytz
 import pytest
 from pycarwings3 import CarwingsError
 from pycarwings3.responses import (
@@ -25,7 +27,7 @@ def test_get_latest_hvac_status_on():
                 "OperationResult":"START_BATTERY",
                 "OperationDateAndTime":"Feb 10, 2016 10:22 PM",
                 "RemoteACOperation":"START",
-                "ACStartStopDateAndTime":"Feb 10, 2016 10:23 PM",
+                "ACStartStopDateAndTime":"2018/04/08 10:00",
                 "CruisingRangeAcOn":"107712.0",
                 "CruisingRangeAcOff":"109344.0",
                 "ACStartStopURL":"",
@@ -39,7 +41,11 @@ def test_get_latest_hvac_status_on():
     response = json.loads(climateresponse)
     status = CarwingsLatestClimateControlStatusResponse(response)
     assert status.is_hvac_running
-
+    assert status.cruising_range_ac_on_km == 107.712
+    assert status.cruising_range_ac_off_km == 109.344
+    assert status.ac_duration == timedelta(seconds=900)
+    assert status.ac_start_stop_date_and_time == datetime(2018, 4, 8, 10, 0, 0, tzinfo=pytz.utc)
+    assert status.is_plugged_in is False
 
 def test_get_latest_hvac_status_off():
     # Source: From 24kWh Leaf (Climate is OFF)
@@ -114,7 +120,7 @@ def test_get_latest_hvac_status_no_ranges_off():
     "OperationResult":"START",
     "OperationDateAndTime":"2019/01/24 09:43",
     "RemoteACOperation":"STOP",
-    "ACStartStopDateAndTime":"2019-jan-24 10:44",
+    "ACStartStopDateAndTime":"2018/04/08 10:00",
     "ACStartStopURL":"",
     "PluginState":"NOT_CONNECTED",
     "ACDurationBatterySec":"900",

@@ -83,6 +83,9 @@ async def main():
             print("start_date=", start_date)
             print_info(leaf_info)
 
+            hvac_status = await leaf.get_latest_hvac_status()
+            print(f"hvac_status: is_running={hvac_status.is_hvac_running}, duration={hvac_status.ac_duration}, start_stop_time={hvac_status.ac_start_stop_date_and_time}")
+
             # Give the nissan servers a bit of a delay so that we don't get stale data
             await asyncio.sleep(1)
 
