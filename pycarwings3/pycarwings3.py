@@ -495,9 +495,11 @@ class Leaf:
         )
         if response["status"] == 200:
             if "BatteryStatusRecords" in response:
-                return CarwingsLatestBatteryStatusResponse(response)
+                try:
+                    return CarwingsLatestBatteryStatusResponse(response)
+                except ValueError as error:
+                    log.warning(error.message)
             else:
-                log.warning("no battery status record returned by server")
                 log.warning("no battery status record returned by server")
 
         return None

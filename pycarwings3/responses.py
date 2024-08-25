@@ -692,6 +692,11 @@ class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
         recs = status["BatteryStatusRecords"]
 
         bs = recs["BatteryStatus"]
+
+        # check if the BatteryStatusRecords.BatteryStatus is an empty array (insted of an object)
+        if isinstance(bs, list) and bs == []:
+            raise ValueError("BatteryStatusRecords.BatteryStatus is an empty array")
+            
         self.battery_capacity = bs["BatteryCapacity"]
         self.battery_remaining_amount = bs["BatteryRemainingAmount"]
         self.battery_remaining_amount_wh = bs["BatteryRemainingAmountWH"]

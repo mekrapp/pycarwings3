@@ -358,3 +358,37 @@ def test_get_latest_battery_status_30kWh_91percent_0degredation():
     response = json.loads(batteryresponse)
     status = CarwingsLatestBatteryStatusResponse(response)
     assert status.battery_percent == 91
+
+def test_get_latest_battery_status_with_empty_status():
+    batteryresponse = """
+        {
+            "status":200,
+            "BatteryStatusRecords": {
+                "OperationResult":"START",
+                "OperationDateAndTime":"21-Jan-2019 13:29",
+                "BatteryStatus": [],
+                "PluginState":"NOT_CONNECTED",
+                "CruisingRangeAcOn":"146000",
+                "CruisingRangeAcOff":"168000",
+                "TimeRequiredToFull":{
+                    "HourRequiredToFull":"4",
+                    "MinutesRequiredToFull":"30"
+                },
+                "TimeRequiredToFull200":{
+                    "HourRequiredToFull":"3"
+                    ,"MinutesRequiredToFull":"0"
+                },
+                "TimeRequiredToFull200_6kW":{
+                    "HourRequiredToFull":"1",
+                    "MinutesRequiredToFull":"30"
+                },
+                "NotificationDateAndTime":"2019/01/21 13:29",
+                "TargetDate":"2019/01/21 13:29"
+            }
+        }
+"""
+    response = json.loads(batteryresponse)
+    with pytest.raises(ValueError):
+      CarwingsLatestBatteryStatusResponse(response)
+      pytest.fail('Should fail with ValueError')
+  
