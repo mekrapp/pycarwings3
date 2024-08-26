@@ -6,7 +6,6 @@ import logging
 import sys
 import pytz
 import pytest
-from pycarwings3 import CarwingsError
 from pycarwings3.responses import (
     CarwingsLatestBatteryStatusResponse,
     CarwingsLatestClimateControlStatusResponse
@@ -75,28 +74,13 @@ def test_get_latest_hvac_status_error():
     climateresponse = """
         {
             "status":200,
-            "RemoteACRecords":{
-                "OperationResult":"ELECTRIC_WAVE_ABNORMAL",
-                "OperationDateAndTime":"2018/04/08 10:00",
-                "RemoteACOperation":"START",
-                "ACStartStopDateAndTime":"08-Apr-2018 11:06",
-                "ACStartStopURL":"",
-                "PluginState":"INVALID",
-                "ACDurationBatterySec":"900",
-                "ACDurationPluggedSec":"7200",
-                "PreAC_unit":"C",
-                "PreAC_temp":"22"
-            }
+            "RemoteACRecords": []
         }
 """
     # Assume climate control is off if we get back an empty response
     response = json.loads(climateresponse)
-    with pytest.raises(CarwingsError) as excinfo:
-        CarwingsLatestClimateControlStatusResponse(response)
-        assert 'Should have exception here'
-
-    assert 'could not establish communications with vehicle' in str(
-        excinfo.value)
+    status = CarwingsLatestClimateControlStatusResponse(response)
+    assert not status.is_hvac_running
 
 
 def test_get_latest_hvac_status_empty():

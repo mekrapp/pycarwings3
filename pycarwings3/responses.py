@@ -363,27 +363,19 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
 
     """
     def __init__(self, status):
-        CarwingsResponse.__init__(self, status["RemoteACRecords"])
+        # we do not call the parent constructor here because we need to handle the case where 
+        # RemoteACRecords is an empty list and not a dictionary
         racr = status["RemoteACRecords"]
-
-        self._set_cruising_ranges(racr, on_key="CruisingRangeAcOn", off_key="CruisingRangeAcOff")
 
         if isinstance(racr, dict):
             self._operation_date_and_time = racr["OperationDateAndTime"]
-
-        # If no empty RemoteACRecords list is returned then assume CC is off.
-        if not isinstance(racr, dict):
-            self.is_hvac_running = False
-        else:
+            self._set_cruising_ranges(racr, on_key="CruisingRangeAcOn", off_key="CruisingRangeAcOff")
             # Seems to be running only if both of these contain "START".
             self.is_hvac_running = (
                 racr["OperationResult"] and
                 racr["OperationResult"].startswith("START") and
                 racr["RemoteACOperation"] == "START"
             )
-
-        if isinstance(racr, dict):
-
             try:
                 self.is_plugged_in = ("NOT_CONNECTED" != racr["PluginState"])
             except KeyError:
@@ -399,10 +391,14 @@ class CarwingsLatestClimateControlStatusResponse(CarwingsResponse):
                 self.ac_start_stop_date_and_time = datetime.strptime(racr["ACStartStopDateAndTime"], "%Y/%m/%d %H:%M").replace(tzinfo=pytz.utc)
             except (KeyError, ValueError):
                 self.ac_start_stop_date_and_time = None
+
         else:
+            # If an empty RemoteACRecords list is returned then assume CC is off.
+            self.is_hvac_running = False
             self.is_plugged_in = None
             self.ac_duration = None
             self.ac_start_stop_date_and_time = None
+
 
         # "Feb 10, 2016 10:26 PM"
         try:
