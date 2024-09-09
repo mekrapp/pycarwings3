@@ -20,6 +20,8 @@ import pycarwings3
 
 log = logging.getLogger(__name__)
 
+class NoDataError(Exception):
+    pass
 
 def _time_remaining(t):
     minutes = float(0)
@@ -680,8 +682,15 @@ class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
             "TargetDate": "2016/02/19 17:12"
           }
         }
+
+        # empty BatteryStatusRecords.BatteryStatus
+        {"status":200,"BatteryStatusRecords":[]}
+
     """
     def __init__(self, status):
+        if isinstance(status["BatteryStatusRecords"], list) and status["BatteryStatusRecords"] == []:
+            raise NoDataError("got an empty BatteryStatusRecords")
+        
         CarwingsResponse.__init__(self, status["BatteryStatusRecords"])
         self.answer = status
 
@@ -691,7 +700,7 @@ class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
 
         # check if the BatteryStatusRecords.BatteryStatus is an empty array (insted of an object)
         if isinstance(bs, list) and bs == []:
-            raise ValueError("BatteryStatusRecords.BatteryStatus is an empty array")
+            raise NoDataError("BatteryStatusRecords.BatteryStatus is an empty array")
             
         self.battery_capacity = bs["BatteryCapacity"]
         self.battery_remaining_amount = bs["BatteryRemainingAmount"]

@@ -78,6 +78,7 @@ from .responses import (
     CarwingsElectricRateSimulationResponse,
     CarwingsClimateControlScheduleResponse,
     CarwingsMyCarFinderResponse,
+    NoDataError,
 )
 import base64
 from Crypto.Cipher import Blowfish
@@ -99,7 +100,6 @@ def _PKCS5Padding(string):
 
 class CarwingsError(Exception):
     pass
-
 
 class Session(object):
     """Maintains a connection to CARWINGS, refreshing it when needed"""
@@ -497,8 +497,8 @@ class Leaf:
             if "BatteryStatusRecords" in response:
                 try:
                     return CarwingsLatestBatteryStatusResponse(response)
-                except ValueError as error:
-                    log.warning(error.message)
+                except NoDataError as error:
+                    log.warning(error)
             else:
                 log.warning("no battery status record returned by server")
 
