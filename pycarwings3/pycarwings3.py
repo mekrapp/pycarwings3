@@ -111,13 +111,13 @@ class Session(object):
         self.logged_in = False
         self.custom_sessionid = None
         self.base_url = base_url
-        if (session):
+        if session is not None:
             self._shared_session = True
             self.session = session
         else:
             self._shared_session = False
             self.session = ClientSession(
-                timeout=ClientTimeout(300, connect=5)
+                timeout=ClientTimeout(connect=120, total=600)
             )
 
         self._semaphore = Semaphore(1)
