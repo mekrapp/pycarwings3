@@ -8,7 +8,8 @@ import pytz
 import pytest
 from pycarwings3.responses import (
     CarwingsLatestBatteryStatusResponse,
-    CarwingsLatestClimateControlStatusResponse
+    CarwingsLatestClimateControlStatusResponse,
+    NoDataError
 )
 
 pytest_plugins = ('pytest_asyncio',)
@@ -372,7 +373,19 @@ def test_get_latest_battery_status_with_empty_status():
         }
 """
     response = json.loads(batteryresponse)
-    with pytest.raises(ValueError):
+    with pytest.raises(NoDataError):
       CarwingsLatestBatteryStatusResponse(response)
       pytest.fail('Should fail with ValueError')
+  
+def test_get_latest_battery_status_with_empty_status_records():
+    batteryresponse = """
+        {
+            "status":200,
+            "BatteryStatusRecords": []
+        }
+"""
+    response = json.loads(batteryresponse)
+    with pytest.raises(NoDataError):
+      CarwingsLatestBatteryStatusResponse(response)
+      pytest.fail('Should fail with NoDataError')
   
