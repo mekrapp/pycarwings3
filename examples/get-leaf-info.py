@@ -79,12 +79,15 @@ async def main():
 
             print("get_latest_battery_status from servers")
             leaf_info = await leaf.get_latest_battery_status()
-            start_date = leaf_info.answer["BatteryStatusRecords"]["OperationDateAndTime"]
-            print("start_date=", start_date)
-            print_info(leaf_info)
+            if leaf_info:
+                start_date = leaf_info.answer["BatteryStatusRecords"]["OperationDateAndTime"]
+                print("start_date=", start_date)
+                print_info(leaf_info)
 
             hvac_status = await leaf.get_latest_hvac_status()
-            print(f"hvac_status: is_running={hvac_status.is_hvac_running}, duration={hvac_status.ac_duration}, start_stop_time={hvac_status.ac_start_stop_date_and_time}")
+
+            if hvac_status:
+                print(f"hvac_status: is_running={hvac_status.is_hvac_running}, duration={hvac_status.ac_duration}, start_stop_time={hvac_status.ac_start_stop_date_and_time}")
 
             # Give the nissan servers a bit of a delay so that we don't get stale data
             await asyncio.sleep(1)
@@ -94,9 +97,11 @@ async def main():
             await update_battery_status(leaf, sleepsecs)
 
             latest_leaf_info = await leaf.get_latest_battery_status()
-            latest_date = latest_leaf_info.answer["BatteryStatusRecords"]["OperationDateAndTime"]
-            print("latest_date=", latest_date)
-            print_info(latest_leaf_info)
+
+            if latest_leaf_info:
+                latest_date = latest_leaf_info.answer["BatteryStatusRecords"]["OperationDateAndTime"]
+                print("latest_date=", latest_date)
+                print_info(latest_leaf_info)
 
         except pycarwings3.CarwingsError as e:
             raise e
