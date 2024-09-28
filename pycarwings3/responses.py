@@ -741,9 +741,10 @@ class CarwingsLatestBatteryStatusResponse(CarwingsResponse):
 
         # Leaf 2016 has SOC (State Of Charge) in BatteryStatus, a more accurate battery_percentage
         if "SOC" in bs:
-            self.state_of_charge = bs["SOC"]["Value"]
+            self.state_of_charge = bs["SOC"].get("Value", None)
             # Update battery_percent with more accurate version
-            self.battery_percent = float(self.state_of_charge)
+            if self.state_of_charge:
+                self.battery_percent = float(self.state_of_charge)
         else:
             self.state_of_charge = None
 
