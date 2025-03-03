@@ -147,11 +147,11 @@ class Session(object):
         return ret
 
     async def _request(self, endpoint, params):
+        params["initial_app_str"] = "9s5rfKVuMrT03RtzajWNcA"
         if self.custom_sessionid:
             params["custom_sessionid"] = self.custom_sessionid
         else:
             params["custom_sessionid"] = ""
-            params["initial_app_str"] = "9s5rfKVuMrT03RtzajWNcA"
 
         url = self.base_url + endpoint
 
