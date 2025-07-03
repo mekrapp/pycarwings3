@@ -82,10 +82,16 @@ from .responses import (
 )
 import base64
 from Crypto.Cipher import Blowfish
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
 from aiohttp import ClientError, ClientSession, ClientTimeout, ContentTypeError
 from asyncio import Semaphore
 
-BASE_URL = "https://gdcportalgw.its-mo.com/api_v230317_NE/gdc/"
+BASE_URL = "https://gdcportalgw.its-mo.com/api_v250205_NE/gdc/"
+
+# New AES login constants
+AES_KEY = "H9YsaE6mr3jBEsAaLC4EJRjn9VXEtTzV"
+AES_IV = "xaX4ui2PLnwqcc74"
 
 log = logging.getLogger(__name__)
 
@@ -97,6 +103,13 @@ def _PKCS5Padding(string):
     appendage = chr(packingLength) * packingLength
     return string + appendage
 
+def encrypt_aes_password(password: str) -> str:
+    key = AES_KEY.encode("utf-8")
+    iv = AES_IV.encode("utf-8")
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    padded = pad(password.encode("utf-8"), AES.block_size)
+    encrypted = cipher.encrypt(padded)
+    return base64.standard_b64encode(encrypted).decode("utf-8")
 
 class CarwingsError(Exception):
     pass
@@ -239,6 +252,8 @@ class Session(object):
         packedPassword = _PKCS5Padding(self.password)
         encryptedPassword = c1.encrypt(packedPassword.encode())
         encodedPassword = base64.standard_b64encode(encryptedPassword).decode()
+        encodedPassword = encrypt_aes_password(self.password)
+
 
         response = await self._request(
             "UserLoginRequest.php",
