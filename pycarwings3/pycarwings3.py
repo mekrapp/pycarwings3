@@ -81,7 +81,6 @@ from .responses import (
     NoDataError,
 )
 import base64
-from Crypto.Cipher import Blowfish
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from aiohttp import ClientError, ClientSession, ClientTimeout, ContentTypeError
