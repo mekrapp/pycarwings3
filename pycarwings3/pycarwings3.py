@@ -95,13 +95,6 @@ AES_IV = "xaX4ui2PLnwqcc74"
 log = logging.getLogger(__name__)
 
 
-# from http://stackoverflow.com/questions/17134100/python-blowfish-encryption
-def _PKCS5Padding(string):
-    byteNum = len(string)
-    packingLength = 8 - byteNum % 8
-    appendage = chr(packingLength) * packingLength
-    return string + appendage
-
 def encrypt_aes_password(password: str) -> str:
     key = AES_KEY.encode("utf-8")
     iv = AES_IV.encode("utf-8")
